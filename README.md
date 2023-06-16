@@ -27,11 +27,6 @@
 ### Part 3: Build a web framework with Flask
 ![webframwork](https://s3.amazonaws.com/intranet-projects-files/concepts/74/hbnb_step3.png)
 
-**Links to other versions:**
-* [AirBnB_clone_v1: Console and web static](https://github.com/bchen528/AirBnB_clone_v1)
-* [AirBnB_clone_v3: RESTful API](https://github.com/bchen528/AirBnB_clone_v3)
-* [AirBnB_clone_v4: Web dynamic](https://github.com/bchen528/AirBnB_clone_v4) (Final version!)
-
 ## Purpose
 The purpose of Phase 2 is to learn how to:
 * create a MySQL database
