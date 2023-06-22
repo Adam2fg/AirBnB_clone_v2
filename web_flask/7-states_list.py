@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+"""Importing Flask to run the web app"""
 from flask import Flask, render_template
 from models import storage
 from models.state import State
@@ -7,23 +8,17 @@ from models.state import State
 app = Flask(__name__)
 
 
+@app.route("/states_list", strict_slashes=False)
+def display_states():
+    """Render state_list html page to display States created"""
+    states = storage.all()
+    return render_template('7-states_list.html', states=states)
+
+
 @app.teardown_appcontext
-def tear_down(self):
-    """tear down app context"""
+def teardown(self):
+    """Method to remove current SQLAlchemy Session"""
     storage.close()
-
-
-@app.route('/states_list', strict_slashes=False)
-def list_states():
-    """lists states from database
-    Returns:
-        HTML
-    """
-    dict_states = storage.all(State)
-    all_states = []
-    for k, v in dict_states.items():
-        all_states.append(v)
-    return render_template('7-states_list.html', all_states=all_states)
 
 
 if __name__ == "__main__":

@@ -1,53 +1,75 @@
 #!/usr/bin/python3
-"""
-Unittest for BaseModel class
-"""
+""" """
+from models.base_model import BaseModel
+from models.engine.file_storage import FileStorage
 import unittest
+from datetime import datetime
+from uuid import UUID
+import json
 import os
 
-from models.base_model import BaseModel
 
-
-class TestBaseModel(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.base1 = BaseModel()
-        cls.base1.name = "Arik"
-        cls.base1.my_number = 29
+class test_basemodel(unittest.TestCase):
+    """Testing base model"""
 
     @classmethod
-    def tearDownClass(cls):
-        del cls.base1
+    def setUp(test_cls):
+        try:
+            os.rename("file.json", "tmp_file")
+        except IOError:
+            pass
+        FileStorage._FileStorage__objects = {}
+        test_cls.storage = FileStorage()
+        test_cls.base = BaseModel()
+
+    @classmethod
+    def tearDownClass(test_cls):
         try:
             os.remove("file.json")
-        except FileNotFoundError:
+        except IOError:
             pass
+        try:
+            os.rename("tmp_file", "file.json")
+        except IOError:
+            pass
+        del test_cls.storage
+        del test_cls.base
 
-    def test_checking_for_functions(self):
-        self.assertIsNotNone(BaseModel.__doc__)
-        self.assertIsNotNone(BaseModel.save.__doc__)
-        self.assertIsNotNone(BaseModel.to_dict.__doc__)
-
-    def test_attributes(self):
+    def test_method(self):
         self.assertTrue(hasattr(BaseModel, "__init__"))
         self.assertTrue(hasattr(BaseModel, "save"))
         self.assertTrue(hasattr(BaseModel, "to_dict"))
+        self.assertTrue(hasattr(BaseModel, "__str__"))
+        self.assertTrue(hasattr(BaseModel, "delete"))
 
-    def test_init(self):
-        self.assertTrue(isinstance(self.base1, BaseModel))
+    def test_attributes(self):
+        self.assertEqual(datetime, type(self.base.created_at))
+        self.assertEqual(datetime, type(self.base.updated_at))
+        self.assertEqual(str, type(self.base.id))
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
-                     "won't work in db")
-    def test_save(self):
-        self.base1.save()
-        self.assertNotEqual(self.base1.created_at, self.base1.updated_at)
+    def test_two_models(self):
+        new_base = BaseModel()
+        self.assertNotEqual(self.base.id, new_base.id)
+        self.assertLess(self.base.created_at, new_base.created_at)
+        self.assertLess(self.base.updated_at, new_base.updated_at)
 
     def test_to_dict(self):
-        base1_dict = self.base1.to_dict()
-        self.assertEqual(self.base1.__class__.__name__, 'BaseModel')
-        self.assertIsInstance(base1_dict['created_at'], str)
-        self.assertIsInstance(base1_dict['updated_at'], str)
+        new_base = self.base.to_dict()
+        self.assertEqual(dict, type(new_base))
+        self.assertEqual(self.base.id, new_base["id"])
+        self.assertEqual("BaseModel", new_base["__class__"])
+        self.assertEqual(self.base.created_at.isoformat(), new_base["created_at"])
+        self.assertEqual(self.base.updated_at.isoformat(), new_base["updated_at"])
+        self.assertEqual(new_base.get("_sa_instance_state", None), None)
+
+
+    @unittest.skipIf(os.getenv("HBNB_ENV") is not None, "Testing DBStorage")
+    def test_save(self):
+        new_base = self.base.updated_at
+        self.base.save()
+        self.assertLess(new_base, self.base.updated_at)
+        with open("file.json", "r") as file:
+            self.assertIn("BaseModel.{}".format(self.base.id), file.read())
 
 
 if __name__ == "__main__":
